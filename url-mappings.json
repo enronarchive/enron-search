@@ -1,0 +1,14 @@
+{
+  "urlMappings": {
+    "corp": "https://enroncorp.com",
+    "ees": "https://energy.enroncorp.com",
+    "ect": "https://wholesale.enroncorp.com", 
+    "ets": "https://ets.enroncorp.com",
+    "fgt": "https://ets.enroncorp.com/fgt/",
+    "wind": "https://wind.enroncorp.com",
+    "credit": "https://credit.enroncorp.com",
+    "direct": "https://direct.enroncorp.com",
+    "direct-canada": "https://direct.enroncorp.com/ca",
+    "direct-spain": "https://direct.enroncorp.com/es"
+  }
+}

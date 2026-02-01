@@ -1,0 +1,91 @@
+{
+  "repos": [
+    {
+      "id": "corp",
+      "name": "Enron Corporate",
+      "repoName": "enroncorp",
+      "tags": ["all", "corp", "pr"],
+      "ignore": ["src/", "search/", "images/", "css/", "js/"]
+    },
+    {
+      "id": "ees",
+      "name": "Enron Energy Services",
+      "repoName": "enron-energy",
+      "tags": ["all", "ees"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "ets",
+      "name": "Enron Transportation & Storage",
+      "repoName": "enron-transportation",
+      "tags": ["all", "ets"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "fgt",
+      "name": "Florida Gas Transmission",
+      "parentRepo": "ets",
+      "repoName": "enron-transportation",
+      "path": "fgt",
+      "tags": ["all", "fgt"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "ect",
+      "name": "Wholesale Services",
+      "repoName": "enron-wholesale",
+      "tags": ["all", "ect"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "wind",
+      "name": "Enron Wind",
+      "parentRepo": "ect",
+      "repoName": "enron-wholesale",
+      "path": "wind",
+      "tags": ["all", "wind"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "credit",
+      "name": "Enron Credit",
+      "repoName": "enron-credit",
+      "tags": ["all", "credit"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "direct",
+      "name": "Enron Direct",
+      "repoName": "enron-direct",
+      "tags": ["all", "direct"],
+      "ignore": ["src/", "ca/", "es/"]
+    },
+    {
+      "id": "direct-canada",
+      "name": "Enron Direct Canada",
+      "parentRepo": "direct",
+      "repoName": "enron-direct",
+      "path": "ca",
+      "tags": ["all", "direct", "direct-canada"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "direct-spain",
+      "name": "Enron Direct Spain",
+      "parentRepo": "direct",
+      "repoName": "enron-direct",
+      "path": "es",
+      "tags": ["all", "direct", "direct-spain"],
+      "ignore": ["src/"]
+    },
+    {
+      "id": "pr",
+      "name": "Press Releases",
+      "parentRepo": "corp",
+      "repoName": "enroncorp",
+      "path": "corp/pressroom/releases",
+      "tags": ["all", "pr"],
+      "ignore": ["src/"]
+    }
+  ]
+}

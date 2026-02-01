@@ -1,0 +1,18 @@
+{
+  "name": "enron-search",
+  "version": "1.0.0",
+  "description": "Centralized search system for Enron Archive",
+  "main": "build-index.js",
+  "scripts": {
+    "build": "node src/build-index.js",
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": ["enron", "archive", "search"],
+  "author": "Enron Archive",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "porter-stemmer": "^0.9.1"
+  }
+}

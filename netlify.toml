@@ -1,0 +1,23 @@
+[build]
+  command = "node src/build-index.js"
+  publish = "public"
+  functions = "functions"
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/search"
+  to = "/.netlify/functions/search"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/results"
+  to = "/results.html"
+  status = 200
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200

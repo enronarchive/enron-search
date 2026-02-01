@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Local repos (used for building index)
+repos/
+
+# Build artifacts
+build.log
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Environment
+.env
+.env.local
+
+# Local Netlify folder
+.netlify
+
+# Local Dev tools
+internaldev.md
