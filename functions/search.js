@@ -2,14 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const stemmer = require('porter-stemmer').stemmer;
 
-// Load URL mappings - works locally, will be copied at deploy time
-const URL_MAPPINGS_PATH = path.join(__dirname, '../url-mappings.json');
+// Load URL mappings - try to load it, but don't fail if missing
 let URL_MAPPINGS = {};
-
 try {
-  if (fs.existsSync(URL_MAPPINGS_PATH)) {
-    URL_MAPPINGS = JSON.parse(fs.readFileSync(URL_MAPPINGS_PATH, 'utf8')).urlMappings || {};
-  }
+  URL_MAPPINGS = require('../url-mappings.json').urlMappings || {};
 } catch (e) {
   console.warn('Failed to load URL mappings:', e.message);
 }
@@ -29,31 +25,11 @@ function loadIndex() {
   if (searchIndex) return searchIndex;
   
   try {
-    // Try multiple possible locations for the index
-    const possiblePaths = [
-      path.join(__dirname, 'search-index.json'),
-      path.join(__dirname, '../public/search-index.json'),
-      path.join(__dirname, '../search-index.json')
-    ];
-    
-    let indexPath = null;
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        indexPath = p;
-        break;
-      }
-    }
-    
-    if (!indexPath) {
-      console.error('Search index not found at any expected location');
-      return null;
-    }
-    
-    const indexData = fs.readFileSync(indexPath, 'utf8');
-    searchIndex = JSON.parse(indexData);
+    // First, try to require the JSON file directly (works in Netlify)
+    searchIndex = require('./search-index.json');
     return searchIndex;
   } catch (e) {
-    console.error('Failed to load search index:', e);
+    console.error('Failed to load search index:', e.message);
     return null;
   }
 }
