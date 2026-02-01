@@ -317,6 +317,10 @@ async function buildIndex() {
   const indexPath = path.join(DIST_DIR, 'search-index.json');
   await writeFile(indexPath, JSON.stringify(index, null, 2));
   
+  // Also copy index to functions directory for Netlify Functions access
+  const functionsIndexPath = path.join(__dirname, '../functions/search-index.json');
+  await writeFile(functionsIndexPath, JSON.stringify(index, null, 2));
+  
   console.log(`\nBuild complete!`);
   console.log(`  Documents indexed: ${documents.length}`);
   console.log(`  Unique terms: ${Object.keys(invertedIndex).length}`);

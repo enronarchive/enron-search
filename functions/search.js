@@ -2,8 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const stemmer = require('porter-stemmer').stemmer;
 
-// Load URL mappings
-const URL_MAPPINGS = JSON.parse(fs.readFileSync(path.join(__dirname, '../url-mappings.json'), 'utf8')).urlMappings;
+// Load URL mappings - works locally, will be copied at deploy time
+const URL_MAPPINGS_PATH = path.join(__dirname, '../url-mappings.json');
+let URL_MAPPINGS = {};
+
+try {
+  if (fs.existsSync(URL_MAPPINGS_PATH)) {
+    URL_MAPPINGS = JSON.parse(fs.readFileSync(URL_MAPPINGS_PATH, 'utf8')).urlMappings || {};
+  }
+} catch (e) {
+  console.warn('Failed to load URL mappings:', e.message);
+}
 
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
@@ -20,7 +29,26 @@ function loadIndex() {
   if (searchIndex) return searchIndex;
   
   try {
-    const indexPath = path.join(__dirname, '../public/search-index.json');
+    // Try multiple possible locations for the index
+    const possiblePaths = [
+      path.join(__dirname, 'search-index.json'),
+      path.join(__dirname, '../public/search-index.json'),
+      path.join(__dirname, '../search-index.json')
+    ];
+    
+    let indexPath = null;
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        indexPath = p;
+        break;
+      }
+    }
+    
+    if (!indexPath) {
+      console.error('Search index not found at any expected location');
+      return null;
+    }
+    
     const indexData = fs.readFileSync(indexPath, 'utf8');
     searchIndex = JSON.parse(indexData);
     return searchIndex;

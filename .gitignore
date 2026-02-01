@@ -7,6 +7,7 @@ repos/
 
 # Build artifacts
 build.log
+functions/search-index.json
 
 # OS files
 .DS_Store
