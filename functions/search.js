@@ -158,16 +158,16 @@ function mapToDeployedUrl(localUrl, tags) {
   // Determine which repo this belongs to based on tags and URL patterns
   let repoKey = null;
   
-  // Check tags to determine repo
-  if (tags.includes('corp')) repoKey = 'corp';
+  // Check tags to determine repo - check more specific tags FIRST (sub-paths before parent repos)
+  if (tags.includes('direct-canada')) repoKey = 'direct-canada';
+  else if (tags.includes('direct-spain')) repoKey = 'direct-spain';
+  else if (tags.includes('fgt')) repoKey = 'fgt';
+  else if (tags.includes('wind')) repoKey = 'wind';
+  else if (tags.includes('corp')) repoKey = 'corp';
   else if (tags.includes('ees')) repoKey = 'ees';
   else if (tags.includes('ect')) repoKey = 'ect';
   else if (tags.includes('ets')) repoKey = 'ets';
-  else if (tags.includes('fgt')) repoKey = 'fgt';
-  else if (tags.includes('wind')) repoKey = 'wind';
   else if (tags.includes('credit')) repoKey = 'credit';
-  else if (tags.includes('direct-canada')) repoKey = 'direct-canada';
-  else if (tags.includes('direct-spain')) repoKey = 'direct-spain';
   else if (tags.includes('direct')) repoKey = 'direct';
   
   if (!repoKey || !URL_MAPPINGS[repoKey]) {
