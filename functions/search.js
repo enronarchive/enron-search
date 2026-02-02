@@ -283,7 +283,8 @@ function searchDocuments(query, filter, page = 1, resultsPerPage = 10) {
     snippet: buildContextSnippet(r.doc.text || r.doc.snippet || '', query),
     size: r.doc.size,
     modified: r.doc.modified || 'N/A',
-    tags: r.doc.tags
+    tags: r.doc.tags,
+    repoName: r.doc.repoName
   }));
   
   return {
