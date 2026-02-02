@@ -2,7 +2,7 @@
   "repos": [
     {
       "id": "corp",
-      "name": "Enron Corporate",
+      "name": "Enron Corporate Website",
       "repoName": "enroncorp",
       "tags": ["all", "corp", "pr"],
       "ignore": ["src/", "search/", "images/", "css/", "js/"]
@@ -16,7 +16,7 @@
     },
     {
       "id": "ets",
-      "name": "Enron Transportation & Storage",
+      "name": "Enron Transportation Services",
       "repoName": "enron-transportation",
       "tags": ["all", "ets"],
       "ignore": ["src/"]
@@ -32,7 +32,7 @@
     },
     {
       "id": "ect",
-      "name": "Wholesale Services",
+      "name": "EnronWholesale Services",
       "repoName": "enron-wholesale",
       "tags": ["all", "ect"],
       "ignore": ["src/"]
@@ -84,7 +84,7 @@
       "parentRepo": "corp",
       "repoName": "enroncorp",
       "path": "corp/pressroom/releases",
-      "tags": ["all", "pr"],
+      "tags": ["all", "corp", "pr"],
       "ignore": ["src/"]
     }
   ]

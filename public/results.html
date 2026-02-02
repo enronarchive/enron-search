@@ -186,9 +186,10 @@ Restored by <a href="https://enronarchive.org" style="color: #666;">The Enron Ar
 // IE5-compatible search results handler
 var currentPage = 1;
 var resultsPerPage = 10;
-var allResults = [];
 var currentQuery = '';
 var currentFilter = '';
+var totalResults = 0;
+var totalPages = 0;
 var STOP_WORDS = {
   'the': 1, 'a': 1, 'an': 1, 'and': 1, 'or': 1, 'but': 1, 'in': 1, 'on': 1,
   'at': 1, 'to': 1, 'for': 1, 'of': 1, 'with': 1, 'by': 1, 'from': 1,
@@ -261,139 +262,19 @@ function formatSize(bytes) {
   return Math.round(bytes / 1048576 * 10) / 10 + ' MB';
 }
 
-// Render a single page of results
+// Render a single page of results fetched from server
 function renderPage(pageNum) {
   currentPage = pageNum;
   var container = document.getElementById('resultsContainer');
-  var startIdx = (pageNum - 1) * resultsPerPage;
-  var endIdx = startIdx + resultsPerPage;
-  var pageResults = allResults.slice(startIdx, endIdx);
+  container.innerHTML = '<p>Loading page ' + pageNum + '...</p>';
   
-  var html = '';
-  
-  // Results header with total count and query
-  html += '<p>';
-  html += '<b>' + allResults.length + '</b> results found for <b>"' + escapeHtml(currentQuery) + '"</b>';
-  html += '</p>';
-  
-  var totalPages = Math.ceil(allResults.length / resultsPerPage);
-  
-  // Results list
-  if (pageResults.length === 0) {
-    html += '<p>No results found.</p>';
-  } else {
-    for (var i = 0; i < pageResults.length; i++) {
-      var result = pageResults[i];
-      var resultNum = startIdx + i + 1;
-      
-      html += '<div class="resultItem">';
-      html += '<span class="resultNumber">' + resultNum + '.</span> ';
-      html += '<a href="' + escapeHtml(result.url) + '" class="resultTitle">';
-      html += escapeHtml(result.title) + '</a>';
-      
-      if (result.breadcrumb) {
-        html += '<br><span class="resultBreadcrumb">';
-        html += escapeHtml(result.breadcrumb) + '</span>';
-      }
-      
-      html += '<br><span class="resultUrl">' + escapeHtml(result.url) + '</span>';
-      
-      // Add snippet if available
-      if (result.snippet) {
-        var snippetHtml = '';
-        if (result.snippet.indexOf('<b>') !== -1) {
-          snippetHtml = result.snippet;
-        } else {
-          snippetHtml = highlightSnippet(result.snippet, currentQuery);
-        }
-        html += '<br><span class="resultSnippet">' + snippetHtml + '</span>';
-      }
-      
-      html += '<br><span class="resultInfo">';
-      if (result.modified && result.modified !== 'N/A') {
-        html += 'Last modified ' + escapeHtml(result.modified) + ' - ';
-      }
-      if (result.size && !isNaN(result.size)) {
-        html += 'page size ' + formatSize(result.size);
-      }
-      html += '</span>';
-      
-      html += '</div>';
-    }
+  // Build API URL with pagination parameters
+  var apiUrl = '/api/search?q=' + encodeURIComponent(currentQuery);
+  if (currentFilter && currentFilter !== 'all') {
+    apiUrl += '&filter=' + encodeURIComponent(currentFilter);
   }
-  
-  // Pagination
-  if (totalPages > 1) {
-    html += '<div class="paginationBar">';
-    
-    // Previous link
-    if (pageNum > 1) {
-      html += '<a href="javascript:renderPage(' + (pageNum - 1) + ')">&lt;&lt; previous</a> ';
-    }
-    
-    // Page numbers
-    var startPage = Math.max(1, pageNum - 4);
-    var endPage = Math.min(totalPages, pageNum + 4);
-    
-    if (startPage > 1) {
-      html += '<a href="javascript:renderPage(1)">1</a> ';
-      if (startPage > 2) html += '... ';
-    }
-    
-    for (var p = startPage; p <= endPage; p++) {
-      if (p === pageNum) {
-        html += '<b>' + p + '</b> ';
-      } else {
-        html += '<a href="javascript:renderPage(' + p + ')">' + p + '</a> ';
-      }
-    }
-    
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) html += '... ';
-      html += '<a href="javascript:renderPage(' + totalPages + ')">' + totalPages + '</a>';
-    }
-    
-    // Next link
-    if (pageNum < totalPages) {
-      html += ' <a href="javascript:renderPage(' + (pageNum + 1) + ')">next &gt;&gt;</a>';
-    }
-    
-    html += '</div>';
-  }
-  
-  container.innerHTML = html;
-}
-
-// Render search results
-function renderResults(data) {
-  var container = document.getElementById('resultsContainer');
-  
-  if (data.error) {
-    container.innerHTML = '<p>Error: ' + escapeHtml(data.error) + '</p>';
-    return;
-  }
-  
-  if (!data.results || data.results.length === 0) {
-    container.innerHTML = '<p>No documents found matching your query. Try different keywords.</p>';
-    return;
-  }
-  
-  allResults = data.results;
-  currentQuery = data.query;
-  currentFilter = data.filter || 'all';
-  renderPage(1);
-}
-
-// Perform search via API
-function performSearch(query, filter) {
-  var container = document.getElementById('resultsContainer');
-  container.innerHTML = '<p>Searching...</p>';
-  
-  // Build API URL
-  var apiUrl = '/api/search?q=' + encodeURIComponent(query);
-  if (filter && filter !== 'all') {
-    apiUrl += '&filter=' + encodeURIComponent(filter);
-  }
+  apiUrl += '&page=' + pageNum;
+  apiUrl += '&resultsPerPage=' + resultsPerPage;
   
   // IE5-compatible XMLHttpRequest
   var xhr = null;
@@ -422,7 +303,7 @@ function performSearch(query, filter) {
           } else {
             data = eval('(' + xhr.responseText + ')');
           }
-          renderResults(data);
+          renderPageResults(data);
         } catch (e) {
           container.innerHTML = '<p>Error parsing results: ' + e.message + '</p>';
         }
@@ -438,6 +319,133 @@ function performSearch(query, filter) {
   } catch (e) {
     container.innerHTML = '<p>Error: ' + e.message + '</p>';
   }
+}
+
+// Render results for the current page (called after fetching from server)
+function renderPageResults(data) {
+  var container = document.getElementById('resultsContainer');
+  
+  if (data.error) {
+    container.innerHTML = '<p>Error: ' + escapeHtml(data.error) + '</p>';
+    return;
+  }
+  
+  if (!data.results || data.results.length === 0) {
+    if (data.total === 0) {
+      container.innerHTML = '<p>No documents found matching your query. Try different keywords.</p>';
+    } else {
+      container.innerHTML = '<p>No results on this page.</p>';
+    }
+    return;
+  }
+  
+  totalResults = data.total;
+  totalPages = data.totalPages;
+  currentPage = data.page;
+  
+  var html = '';
+  
+  // Results header with total count and query
+  html += '<p>';
+  html += '<b>' + totalResults + '</b> results found for <b>"' + escapeHtml(currentQuery) + '"</b>';
+  html += '</p>';
+  
+  // Results list
+  for (var i = 0; i < data.results.length; i++) {
+    var result = data.results[i];
+    var resultNum = (currentPage - 1) * resultsPerPage + i + 1;
+    
+    html += '<div class="resultItem">';
+    html += '<span class="resultNumber">' + resultNum + '.</span> ';
+    html += '<a href="' + escapeHtml(result.url) + '" class="resultTitle">';
+    html += escapeHtml(result.title) + '</a>';
+    
+    if (result.breadcrumb) {
+      var breadcrumb = result.breadcrumb;
+      if (result.repoName) {
+        breadcrumb = breadcrumb.replace(/^[^\/> ]+/, result.repoName);
+      }
+      html += '<br><span class="resultBreadcrumb">';
+      html += escapeHtml(breadcrumb) + '</span>';
+    }
+    
+    html += '<br><b>URL:</b> <span class="resultUrl">' + escapeHtml(result.url) + '</span>';
+    
+    // Add snippet if available
+    if (result.snippet) {
+      var snippetHtml = '';
+      if (result.snippet.indexOf('<b>') !== -1) {
+        snippetHtml = result.snippet;
+      } else {
+        snippetHtml = highlightSnippet(result.snippet, currentQuery);
+      }
+      html += '<br><span class="resultSnippet">' + snippetHtml + '</span>';
+    }
+    
+    html += '<br><span class="resultInfo">';
+    if (result.modified && result.modified !== 'N/A') {
+      html += 'Last modified ' + escapeHtml(result.modified) + ' - ';
+    }
+    if (result.size && !isNaN(result.size)) {
+      html += 'page size ' + formatSize(result.size);
+    }
+    html += '</span>';
+    
+    html += '</div>';
+  }
+  
+  // Pagination
+  if (totalPages > 1) {
+    html += '<div class="paginationBar">';
+    
+    // Previous link
+    if (currentPage > 1) {
+      html += '<a href="javascript:renderPage(' + (currentPage - 1) + ')">&lt;&lt; previous</a> ';
+    }
+    
+    // Page numbers
+    var startPage = Math.max(1, currentPage - 4);
+    var endPage = Math.min(totalPages, currentPage + 4);
+    
+    if (startPage > 1) {
+      html += '<a href="javascript:renderPage(1)">1</a> ';
+      if (startPage > 2) html += '... ';
+    }
+    
+    for (var p = startPage; p <= endPage; p++) {
+      if (p === currentPage) {
+        html += '<b>' + p + '</b> ';
+      } else {
+        html += '<a href="javascript:renderPage(' + p + ')">' + p + '</a> ';
+      }
+    }
+    
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) html += '... ';
+      html += '<a href="javascript:renderPage(' + totalPages + ')">' + totalPages + '</a>';
+    }
+    
+    // Next link
+    if (currentPage < totalPages) {
+      html += ' <a href="javascript:renderPage(' + (currentPage + 1) + ')">next &gt;&gt;</a>';
+    }
+    
+    html += '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+// Perform search via API (fetch first page)
+function performSearch(query, filter) {
+  var container = document.getElementById('resultsContainer');
+  container.innerHTML = '<p>Searching...</p>';
+  
+  currentQuery = query;
+  currentFilter = filter || 'all';
+  
+  // Fetch first page
+  renderPage(1);
 }
 
 // Initialize on page load

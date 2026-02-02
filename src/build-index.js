@@ -187,7 +187,7 @@ function tokenizeAndStem(text) {
 /**
  * Index a single HTML file
  */
-async function indexFile(filePath, basePath, repoId, tags) {
+async function indexFile(filePath, basePath, repoId, repoName, tags) {
   try {
     const html = await readFile(filePath, 'utf8');
     const relativePath = path.relative(basePath, filePath);
@@ -217,7 +217,8 @@ async function indexFile(filePath, basePath, repoId, tags) {
       modified: modified,
       size: html.length,
       tags: tags,
-      repoId: repoId
+      repoId: repoId,
+      repoName: repoName
     });
     
     // Add to inverted index
@@ -240,7 +241,7 @@ async function indexFile(filePath, basePath, repoId, tags) {
 /**
  * Recursively crawl directory for HTML files
  */
-async function crawlDirectory(dir, basePath, repoId, tags, ignore = []) {
+async function crawlDirectory(dir, basePath, repoId, repoName, tags, ignore = []) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   
   for (const entry of entries) {
@@ -253,9 +254,9 @@ async function crawlDirectory(dir, basePath, repoId, tags, ignore = []) {
     }
     
     if (entry.isDirectory()) {
-      await crawlDirectory(fullPath, basePath, repoId, tags, ignore);
+      await crawlDirectory(fullPath, basePath, repoId, repoName, tags, ignore);
     } else if (entry.name.endsWith('.html')) {
-      await indexFile(fullPath, basePath, repoId, tags);
+      await indexFile(fullPath, basePath, repoId, repoName, tags);
     }
   }
 }
@@ -270,7 +271,7 @@ async function indexRepo(repo) {
   const repoPath = await ensureRepoCloned(repo);
   
   const ignore = repo.ignore || [];
-  await crawlDirectory(repoPath, repoPath, repo.id, repo.tags, ignore);
+  await crawlDirectory(repoPath, repoPath, repo.id, repo.name, repo.tags, ignore);
 }
 
 /**
@@ -298,7 +299,7 @@ async function buildIndex() {
     
     console.log(`\nIndexing ${repo.name}...`);
     if (fs.existsSync(fullPath)) {
-      await crawlDirectory(fullPath, parentPath, repo.id, repo.tags, repo.ignore || []);
+      await crawlDirectory(fullPath, parentPath, repo.id, repo.name, repo.tags, repo.ignore || []);
     } else {
       console.warn(`  Path not found: ${fullPath}`);
     }

@@ -176,15 +176,18 @@ function mapToDeployedUrl(localUrl, tags) {
   
   const baseUrl = URL_MAPPINGS[repoKey];
   
-  // Handle special cases
+  // Handle special cases for sub-path repos
   if (repoKey === 'fgt') {
-    // FGT URLs already include /fgt/ prefix in the base URL
+    // FGT: remove /fgt/ prefix since it's included in base URL
     return baseUrl + localUrl.replace(/^\/fgt\//, '');
+  } else if (repoKey === 'wind') {
+    // Wind: remove /wind/ prefix since domain is wind-specific
+    return baseUrl + localUrl.replace(/^\/wind\//, '/');
   } else if (repoKey === 'direct-canada') {
-    // Remove /ca/ prefix since it's included in base URL
+    // Direct Canada: remove /ca/ prefix since it's included in base URL
     return baseUrl + localUrl.replace(/^\/ca\//, '/');
   } else if (repoKey === 'direct-spain') {
-    // Remove /es/ prefix since it's included in base URL
+    // Direct Spain: remove /es/ prefix since it's included in base URL
     return baseUrl + localUrl.replace(/^\/es\//, '/');
   } else {
     // Standard mapping - just prepend the base URL
@@ -192,7 +195,7 @@ function mapToDeployedUrl(localUrl, tags) {
   }
 }
 
-function searchDocuments(query, filter) {
+function searchDocuments(query, filter, page = 1, resultsPerPage = 10) {
   const index = loadIndex();
   if (!index) {
     return { error: 'Search index not available' };
@@ -206,7 +209,7 @@ function searchDocuments(query, filter) {
   // Tokenize query
   const queryTerms = tokenizeQuery(searchQuery);
   if (queryTerms.length === 0) {
-    return { query, total: 0, results: [] };
+    return { query, total: 0, results: [], page, resultsPerPage, totalPages: 0 };
   }
   
   const totalDocs = index.documents.length;
@@ -263,8 +266,16 @@ function searchDocuments(query, filter) {
   // Sort by score (descending)
   results.sort((a, b) => b.score - a.score);
   
+  // Calculate pagination
+  const totalResults = results.length;
+  const totalPages = Math.ceil(totalResults / resultsPerPage);
+  const pageNum = Math.max(1, Math.min(page, totalPages || 1));
+  const startIdx = (pageNum - 1) * resultsPerPage;
+  const endIdx = startIdx + resultsPerPage;
+  const pageResults = results.slice(startIdx, endIdx);
+  
   // Format results
-  const formattedResults = results.map(r => ({
+  const formattedResults = pageResults.map(r => ({
     title: r.doc.title,
     url: mapToDeployedUrl(r.doc.url, r.doc.tags),
     localUrl: r.doc.url, // Keep original for reference
@@ -278,7 +289,10 @@ function searchDocuments(query, filter) {
   return {
     query: query,
     filter: filter || 'all',
-    total: results.length,
+    total: totalResults,
+    page: pageNum,
+    resultsPerPage: resultsPerPage,
+    totalPages: totalPages,
     results: formattedResults
   };
 }
@@ -289,6 +303,8 @@ exports.handler = async (event) => {
     const params = event.queryStringParameters || {};
     const query = params.q || '';
     const filter = params.filter || 'all';
+    const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
+    const resultsPerPage = Math.max(1, Math.min(100, parseInt(params.resultsPerPage || '10', 10) || 10));
     
     // Validate query
     if (!query || query.trim().length === 0) {
@@ -304,8 +320,8 @@ exports.handler = async (event) => {
       };
     }
     
-    // Perform search
-    const results = searchDocuments(query.trim(), filter);
+    // Perform search with pagination
+    const results = searchDocuments(query.trim(), filter, page, resultsPerPage);
     
     return {
       statusCode: 200,
