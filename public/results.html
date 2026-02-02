@@ -332,7 +332,7 @@ function renderPageResults(data) {
   
   if (!data.results || data.results.length === 0) {
     if (data.total === 0) {
-      container.innerHTML = '<p>No documents found matching your query. Try different keywords.</p>';
+      container.innerHTML = '<p>No documents found for <b>"' + escapeHtml(currentQuery) + '"</b>. Try different keywords.</p>';
     } else {
       container.innerHTML = '<p>No results on this page.</p>';
     }

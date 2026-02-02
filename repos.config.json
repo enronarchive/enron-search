@@ -5,7 +5,7 @@
       "name": "Enron Corporate Website",
       "repoName": "enroncorp",
       "tags": ["all", "corp", "pr"],
-      "ignore": ["src/", "search/", "images/", "css/", "js/"]
+      "ignore": ["src/", "search/", "images/", "css/", "js/", "pressroom/releases/"]
     },
     {
       "id": "ees",

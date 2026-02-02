@@ -246,7 +246,7 @@ async function crawlDirectory(dir, basePath, repoId, repoName, tags, ignore = []
   
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    const relativePath = path.relative(basePath, fullPath);
+    const relativePath = path.relative(basePath, fullPath).replace(/\\/g, '/');
     
     // Check ignore patterns
     if (ignore.some(pattern => relativePath.includes(pattern))) {
